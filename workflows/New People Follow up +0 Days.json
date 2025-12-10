@@ -3,32 +3,6 @@
   "nodes": [
     {
       "parameters": {
-        "resource": "Workflow",
-        "operation": "GET -workflows--workflow-id--cards",
-        "workflow_id": "={{ $json.test_id }}",
-        "additionalFields": {},
-        "requestOptions": {}
-      },
-      "type": "CUSTOM.people",
-      "typeVersion": 1,
-      "position": [
-        448,
-        96
-      ],
-      "id": "932e20a6-e104-4c2d-b6fe-03699dcdd1e4",
-      "name": "GET /workflows/{workflow_id}/cards/{card_id}",
-      "alwaysOutputData": true,
-      "notesInFlow": true,
-      "executeOnce": false,
-      "credentials": {
-        "peopleApi": {
-          "id": "ptrnQow3LACKUZ3X",
-          "name": "People account"
-        }
-      }
-    },
-    {
-      "parameters": {
         "content": "# MT New People",
         "height": 464,
         "width": 1088,
@@ -334,26 +308,38 @@
       ],
       "id": "1c318ab0-a148-4ecf-a477-73a6bbadf4bd",
       "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "resource": "Workflow",
+        "operation": "GET -workflows--workflow-id--cards",
+        "workflow_id": "={{ $json.test_id }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        448,
+        96
+      ],
+      "id": "66d5c5d9-081b-42bc-9657-107ecee8da90",
+      "name": "GET /workflows/{workflow_id}/cards",
+      "credentials": {
+        "peopleApi": {
+          "id": "ptrnQow3LACKUZ3X",
+          "name": "People account"
+        }
+      }
     }
   ],
   "pinData": {},
   "connections": {
-    "GET /workflows/{workflow_id}/cards/{card_id}": {
-      "main": [
-        [
-          {
-            "node": "PARSE individual cards",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "WORKFLOW IDs": {
       "main": [
         [
           {
-            "node": "GET /workflows/{workflow_id}/cards/{card_id}",
+            "node": "GET /workflows/{workflow_id}/cards",
             "type": "main",
             "index": 0
           }
@@ -458,13 +444,24 @@
           }
         ]
       ]
+    },
+    "GET /workflows/{workflow_id}/cards": {
+      "main": [
+        [
+          {
+            "node": "PARSE individual cards",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "fd0a2c5d-a09c-45b9-9959-f70733f2c3b5",
+  "versionId": "5f44123a-8d57-438f-92d8-c933087d5493",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "00eda978326eca03b7a76263aaa300c1b10e79f3a5d0742840747f72ad4409be"

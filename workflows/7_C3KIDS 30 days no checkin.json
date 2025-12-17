@@ -1,0 +1,836 @@
+{
+  "name": "7_C3KIDS 30 days no checkin",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"test_id\": 688998,\n  \"template_id\": \"pq3enl6dqn0g2vwr\",\n  \"awaiting_response_step_id\": 1867401\n}\n",
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        112
+      ],
+      "id": "3754c48b-eb8e-4241-9316-32d7de2d613f",
+      "name": "WORKFLOW IDs"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 4
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        208
+      ],
+      "id": "19b14e9f-1eb8-4726-b111-10a8d5a7fdee",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "Person",
+        "operation": "GET -people--person-id--emails",
+        "person_id": "={{ $('Edit Fields').item.json.data.data[0].relationships.primary_contact.data.id }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        3584,
+        112
+      ],
+      "id": "1ba30c1f-6ebc-4f61-8fc2-baf3f35779cb",
+      "name": "EMAILS",
+      "credentials": {
+        "peopleApi": {
+          "id": "ptrnQow3LACKUZ3X",
+          "name": "People account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Person",
+        "operation": "GET -people--person-id-",
+        "person_id": "={{ $json.data.relationships.person.data.id }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        112
+      ],
+      "id": "d3a3a081-a5bd-49ad-8d98-07aa736ecc66",
+      "name": "PERSON",
+      "credentials": {
+        "peopleApi": {
+          "id": "ptrnQow3LACKUZ3X",
+          "name": "People account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "include": "=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        672,
+        112
+      ],
+      "id": "d1cc2617-e06a-4344-ae59-f44a682d87a2",
+      "name": "PARSE individual cards",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mailersend.com/v1/email",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"subject\": \"We miss you!\",\n  \"from\": {\n    \"email\": \"hello@sejin.kim\",\n    \"name\": \"C3 Toronto\"\n  },\n  \"to\": [{\n    \"email\": \"{{ $('EMAILS').item.json.data[0].attributes.address  }}\",\n    \"name\": \"{{ $('PERSON').item.json.data.attributes.first_name }} {{ $('PERSON').item.json.data.attributes.last_name }}\"\n  }],\n  \"personalization\": [{\n    \"email\": \"{{ $('EMAILS').item.json.data[0].attributes.address }}\", \n    \"data\": {\n      \"name\": \"{{ $('PERSON').item.json.data.attributes.first_name }}\",\n      \"nickname\": \"We haven't seen {{ $('Edit Fields1').item.json.data.data.attributes.first_name }} in 30 days! Here's what's coming up in the life of our church:\"\n    }\n  }],\n  \"template_id\": \"{{ $('WORKFLOW IDs').item.json.template_id }}\"\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3808,
+        112
+      ],
+      "id": "0a013072-0803-42af-b196-4195db9e868b",
+      "name": "MailerSend - Welcome (TEST)",
+      "executeOnce": false,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "08eJzRLXLYkPFd59",
+          "name": "MailerSend test token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "96e417cc-e421-481a-aa7d-c9d2764b4f32",
+              "leftValue": "={{ $now.diff(DateTime.fromISO($('PARSE individual cards').item.json.data.attributes.moved_to_step_at), 'days').days }}",
+              "rightValue": 30,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            },
+            {
+              "id": "267620dd-4fa3-4024-975f-518b8a04c0e8",
+              "leftValue": "={{ $('PARSE individual cards').item.json.data.relationships.current_step.data.id }}",
+              "rightValue": "={{ $('WORKFLOW IDs').item.json.awaiting_response_step_id }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "1dd52cf5-17cc-49e4-88c7-6da73be1209d",
+              "leftValue": "={{ $('PARSE individual cards').item.json.data.attributes.removed_at }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        112
+      ],
+      "id": "df217970-9c13-4a4d-b87b-8427132740af",
+      "name": "IF been on this step for more than 30 days"
+    },
+    {
+      "parameters": {
+        "resource": "Person",
+        "operation": "POST -people--person-id--notes",
+        "person_id": "={{ $('PERSON').item.json.data.id }}",
+        "additionalFields": {
+          "data": "={\n  \"attributes\": \n  {\"note\": \"We sent template {{ $('MailerSend - get Template info').item.json.data[0].name }} via email to {{ $('EMAILS').item.json.data[0].attributes.address }}\",\n  \"note_category_id\": \"285162\"}\n}"
+        },
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        4256,
+        112
+      ],
+      "id": "1b421459-761b-44d7-a882-33761faecc97",
+      "name": "LEAVE note about email",
+      "credentials": {
+        "peopleApi": {
+          "id": "ptrnQow3LACKUZ3X",
+          "name": "People account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.mailersend.com/v1/templates/{{ $json.template_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4032,
+        112
+      ],
+      "id": "45bd1caf-d12c-46e6-87f0-b3acb7e6e439",
+      "name": "MailerSend - get Template info",
+      "executeOnce": false,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "08eJzRLXLYkPFd59",
+          "name": "MailerSend test token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## WORKFLOW Entry + Filter\n* Note: Last step filters for removed cards",
+        "height": 448,
+        "width": 896,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        -80
+      ],
+      "id": "fe4259e9-050a-4476-bdf7-daf9a7b6114e",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## CORE Logic\n* has this person been on the \"Awaiting Response\" step for 30 days?\n\n1. Get PersonID\n2. Get Email for PersonID\n3. Check how long they've been here for",
+        "height": 448,
+        "width": 672,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        832,
+        -176
+      ],
+      "id": "43161234-7053-4bdc-b390-ad717ff17278",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        16
+      ],
+      "id": "e0823eb3-2e5d-4b63-af30-9992d3b72088",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "content": "## LOG on Planning Center Notes\n\n1. Get information about what email was sent\n2. Leave a note",
+        "height": 448,
+        "width": 432,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2064,
+        352
+      ],
+      "id": "d1c727d8-dd7a-42b3-9ddc-3f154259e2a8",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "resource": "Workflow",
+        "operation": "GET -workflows--workflow-id--cards",
+        "workflow_id": "={{ $json.test_id }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        448,
+        112
+      ],
+      "id": "848236bd-80ef-415b-902a-c063b9094b71",
+      "name": "GET /workflows/{workflow_id}/cards",
+      "credentials": {
+        "peopleApi": {
+          "id": "ptrnQow3LACKUZ3X",
+          "name": "People account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## FIRE EMAIL",
+        "height": 448,
+        "width": 224
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        352
+      ],
+      "id": "3ac3b19f-1d21-4d97-acb4-8935dbfcf9e7",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a0a81b3d-24c2-4baa-84dd-b1d81b87fbe4",
+              "name": "data",
+              "value": "={{ $json.data }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1792,
+        112
+      ],
+      "id": "9eb97810-e265-47fc-92a2-7c5c256c45d6",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "python",
+        "pythonCode": "# Loop over input items and add a new field called 'myNewField' to the JSON of each one\npayload = {'kids': []}\n\nfor item in _input.first().json.data.data[0].relationships.people.data:\n  payload['kids'].append(item.id)\nreturn payload"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        112
+      ],
+      "id": "1ac707b0-0e92-414b-87a4-e111bf164589",
+      "name": "Parse Household Members"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.data.links.households }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1568,
+        112
+      ],
+      "id": "1e1051bb-60bf-421e-bfe0-5c8b31e7859d",
+      "name": "Get Household",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "RkWKPdYSGpfZ3AcU",
+          "name": "PCO Basic"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1344,
+        112
+      ],
+      "id": "43b396dc-a0af-41f8-943e-2ba3947e0e65",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "kids",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        112
+      ],
+      "id": "2b57684a-0ee8-431e-874b-e34aae76e3bd",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "resource": "Person",
+        "operation": "GET -people--person-id-",
+        "person_id": "={{ $json.kids }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        2464,
+        112
+      ],
+      "id": "1c50c753-a946-43db-954a-915d4cac4aba",
+      "name": "GET /people/{person_id}",
+      "credentials": {
+        "peopleApi": {
+          "id": "ptrnQow3LACKUZ3X",
+          "name": "People account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.planningcenteronline.com/check-ins/v2/people/{{ $json.data.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2912,
+        112
+      ],
+      "id": "7ebe871a-1550-4d57-b8f8-866ff1879399",
+      "name": "LAST Check-in Date",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "RkWKPdYSGpfZ3AcU",
+          "name": "PCO Basic"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "51f9538a-9bd5-4962-8a95-b37f94891e93",
+              "leftValue": "={{ $json.data.attributes.child }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2688,
+        112
+      ],
+      "id": "94321afb-874e-4cf4-9d7f-210956a01ec6",
+      "name": "IF they're a child"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c8f74c68-31fc-4999-8c84-925a03892893",
+              "leftValue": "={{ $json.data.data.attributes.last_checked_in_at }}",
+              "rightValue": "",
+              "operator": {
+                "type": "dateTime",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "09b19114-2e78-47b1-9283-4f8248492ac7",
+              "leftValue": "={{ $now.diff(DateTime.fromISO($json.data.data.attributes.last_checked_in_at), 'days').days }}",
+              "rightValue": 30,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3360,
+        112
+      ],
+      "id": "90c1d339-9654-499c-8e0a-f762f73afab7",
+      "name": "IF they were checked in within the last 30 days"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a0a81b3d-24c2-4baa-84dd-b1d81b87fbe4",
+              "name": "data",
+              "value": "={{ $json.data }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3136,
+        112
+      ],
+      "id": "ecf56e58-605a-4c19-b18c-8ce55b232139",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "resource": "Person",
+        "operation": "POST -people--person-id--workflow-cards--workflow-card-id--skip-step",
+        "person_id": "={{ $json.data.attributes.person_id }}",
+        "workflow_card_id": "={{ $('PARSE individual cards').item.json.data.id }}",
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        4480,
+        112
+      ],
+      "id": "9b18800e-1b15-4d6c-b267-ba58ff303106",
+      "name": "MOVE person to next step",
+      "credentials": {
+        "peopleApi": {
+          "id": "ptrnQow3LACKUZ3X",
+          "name": "People account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WORKFLOW IDs": {
+      "main": [
+        [
+          {
+            "node": "GET /workflows/{workflow_id}/cards",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "WORKFLOW IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EMAILS": {
+      "main": [
+        [
+          {
+            "node": "MailerSend - Welcome (TEST)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PERSON": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PARSE individual cards": {
+      "main": [
+        [
+          {
+            "node": "IF been on this step for more than 30 days",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF been on this step for more than 30 days": {
+      "main": [
+        [
+          {
+            "node": "PERSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MailerSend - Welcome (TEST)": {
+      "main": [
+        [
+          {
+            "node": "MailerSend - get Template info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MailerSend - get Template info": {
+      "main": [
+        [
+          {
+            "node": "LEAVE note about email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "WORKFLOW IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET /workflows/{workflow_id}/cards": {
+      "main": [
+        [
+          {
+            "node": "PARSE individual cards",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Parse Household Members",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Household Members": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Household": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Household",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "GET /people/{person_id}",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET /people/{person_id}": {
+      "main": [
+        [
+          {
+            "node": "IF they're a child",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LAST Check-in Date": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF they're a child": {
+      "main": [
+        [
+          {
+            "node": "LAST Check-in Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF they were checked in within the last 30 days": {
+      "main": [
+        [
+          {
+            "node": "EMAILS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "IF they were checked in within the last 30 days",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LEAVE note about email": {
+      "main": [
+        [
+          {
+            "node": "MOVE person to next step",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0db14383-81c7-40ec-bb17-dd6b6a34ff92",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "00eda978326eca03b7a76263aaa300c1b10e79f3a5d0742840747f72ad4409be"
+  },
+  "id": "dSTNd1LddKoDmGt0",
+  "tags": []
+}

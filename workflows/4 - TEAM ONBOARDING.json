@@ -1,0 +1,403 @@
+{
+  "name": "TEAM ONBOARDING",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "Workflow",
+        "operation": "GET -workflows--workflow-id--cards",
+        "workflow_id": "={{ $json.test_id }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        1456,
+        896
+      ],
+      "id": "00d2ec7e-a80f-4338-8605-8fe9d0601ff5",
+      "name": "GET /workflows/{workflow_id}/cards1",
+      "credentials": {
+        "peopleApi": {
+          "id": "Nr2QJY1K5dkgX00p",
+          "name": "People account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"mt_workflow_id\": 548148,\n  \"test_id\": 687227,\n  \"template_id\": \"pq3enl6dqn0g2vwr\",\n  \"first_step_id\": 1861225\n}\n",
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1232,
+        896
+      ],
+      "id": "bb6ddee9-d10c-47bf-b17b-cfd07845adbc",
+      "name": "WORKFLOW IDs"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "daysInterval": 7,
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        1008,
+        896
+      ],
+      "id": "2e06cb27-a46d-47d6-91f0-cf90cb1adf24",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "include": "=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        896
+      ],
+      "id": "d426e6e3-a7ed-40c9-b54e-6ed84771d744",
+      "name": "PARSE individual cards",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "content": "## WORKFLOW Entry + Filter",
+        "height": 512,
+        "width": 1120,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        960,
+        608
+      ],
+      "id": "7a3668e2-6f16-42ba-b3b1-1d3cd20b8150",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Welcome email logic\n\n1. Get PersonID\n2. get email for person\n3. pUSH TO NEXT STEP IN WORKFLOW",
+        "height": 512,
+        "width": 912,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        608
+      ],
+      "id": "65503499-805a-4657-8146-e9c406fbe2c9",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "##Send email",
+        "height": 512,
+        "width": 640,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3104,
+        608
+      ],
+      "id": "69415d6b-26c7-4d4c-adae-1897a210afe8",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "resource": "Person",
+        "operation": "GET -people--person-id-",
+        "person_id": "={{ $json.data.relationships.person.data.id }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        2176,
+        880
+      ],
+      "id": "c6e1ea29-f3e6-40e7-a341-c83f9e3f122d",
+      "name": "PERSON1",
+      "credentials": {
+        "peopleApi": {
+          "id": "Nr2QJY1K5dkgX00p",
+          "name": "People account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Person",
+        "operation": "GET -people--person-id--emails",
+        "person_id": "={{ $json.data.id }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        2416,
+        880
+      ],
+      "id": "4496b8eb-262d-4067-b3ae-45a87efa9b9f",
+      "name": "EMAILS3",
+      "credentials": {
+        "peopleApi": {
+          "id": "Nr2QJY1K5dkgX00p",
+          "name": "People account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2581a361-53eb-4c53-8c53-dbe35d4666de",
+              "leftValue": "={{ $json.data.attributes.removed_at }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "15073430-cec5-411c-8f77-22bb86142b25",
+              "leftValue": "={{ $json.data.relationships.current_step.data.id }}",
+              "rightValue": "1861225",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1872,
+        896
+      ],
+      "id": "e41dc3c8-3f8d-4315-ba70-f6413c44f5ef",
+      "name": "FILTER removed cards & cards not on first step"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mailersend.com/v1/email",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"subject\": \"LETS GO\",\n    \"from\": {\n        \"email\": \"hello@sejin.kim\",\n        \"name\": \"C3 Toronto\"\n    },\n    \"to\": [\n        {\n            \"email\": \"chuksxd@gmail.com\",\n            \"name\": \"Chuks Chukwuocha\"\n        }\n    ],\n    \"personalization\": [\n        {\n            \"email\": \"chuksxd@gmail.com\",\n            \"data\": {\n                \"name\": \"Chuks\",\n                \"nickname\": \"Hi Chuks!  We are that you are interested in joining our production team! Our team focuses on 3 main areas: - Lights - Sound (some exposure to this industry is a plus, but no stress we will teach you everything you need to know) - Screens Please reply to this email and let us know which area you're most interested in.We'll connect you with a team member to guide you through the next steps.If you are unsure, don't worry - we're here to help you find the best fit!Blessings!\"\n            }\n        }\n    ],\n    \"template_id\": \"pq3enl6dqn0g2vwr\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2816,
+        880
+      ],
+      "id": "9f3b154f-caac-4c91-afe8-6889de3b22b3",
+      "name": "MailerSend - Welcome (TEST)1",
+      "executeOnce": false,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "zLJhxS5BkukgEB1o",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Person",
+        "operation": "POST -people--person-id--workflow-cards--workflow-card-id--skip-step",
+        "person_id": "={{ $('PERSON1').item.json.data.id }}",
+        "workflow_card_id": "={{ $('PARSE individual cards').item.json.data.id }}",
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        3408,
+        880
+      ],
+      "id": "c6064d81-d0ec-428c-aa15-987df1df9a94",
+      "name": "MOVE person to next step1",
+      "credentials": {
+        "peopleApi": {
+          "id": "Nr2QJY1K5dkgX00p",
+          "name": "People account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.mailersend.com/v1/templates/{{ $('WORKFLOW IDs').item.json.template_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3136,
+        880
+      ],
+      "id": "d8bd8459-378c-435b-b226-722324241a62",
+      "name": "MailerSend - get Template info2",
+      "executeOnce": false,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "zLJhxS5BkukgEB1o",
+          "name": "Bearer Auth account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "GET /workflows/{workflow_id}/cards1": {
+      "main": [
+        [
+          {
+            "node": "PARSE individual cards",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WORKFLOW IDs": {
+      "main": [
+        [
+          {
+            "node": "GET /workflows/{workflow_id}/cards1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "WORKFLOW IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PARSE individual cards": {
+      "main": [
+        [
+          {
+            "node": "FILTER removed cards & cards not on first step",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PERSON1": {
+      "main": [
+        [
+          {
+            "node": "EMAILS3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EMAILS3": {
+      "main": [
+        [
+          {
+            "node": "MailerSend - Welcome (TEST)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FILTER removed cards & cards not on first step": {
+      "main": [
+        [
+          {
+            "node": "PERSON1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MailerSend - Welcome (TEST)1": {
+      "main": [
+        [
+          {
+            "node": "MailerSend - get Template info2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MailerSend - get Template info2": {
+      "main": [
+        [
+          {
+            "node": "MOVE person to next step1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f734c77b-789a-4822-99af-d3096dc97f3a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0c270e11fe39b62d0937fd806cf5d014ceedec4915a7fbf16fed8d81b25e12a0"
+  },
+  "id": "OWkNx1jUlc9q85B1",
+  "tags": []
+}

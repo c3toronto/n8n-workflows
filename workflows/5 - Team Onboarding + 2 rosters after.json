@@ -1,5 +1,5 @@
 {
-  "name": "TEAM ONBOARDING",
+  "name": "TEAM ONBOARDING + 2 Rosters after",
   "nodes": [
     {
       "parameters": {
@@ -64,15 +64,15 @@
       "parameters": {
         "resource": "Person",
         "operation": "GET -people--person-id--emails",
-        "person_id": "={{ $json.assigneeID }}",
+        "person_id": "={{ $json.data.id }}",
         "additionalFields": {},
         "requestOptions": {}
       },
       "type": "@c3toronto/n8n-nodes-pco.people",
       "typeVersion": 1,
       "position": [
-        3696,
-        976
+        3920,
+        992
       ],
       "id": "2f81ec79-ca3e-473b-906f-d7e0acf197ec",
       "name": "EMAILS",
@@ -109,7 +109,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        4720,
+        5120,
         896
       ],
       "id": "74981650-f2b9-47c5-9524-973032ee94b3",
@@ -140,6 +140,15 @@
                 "type": "string",
                 "operation": "empty",
                 "singleValue": true
+              }
+            },
+            {
+              "id": "2ddec93d-d925-4cee-8541-7e5c0448b9af",
+              "leftValue": "={{ $json.data.relationships.current_step.data.id }}",
+              "rightValue": "1861417",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
               }
             }
           ],
@@ -176,7 +185,7 @@
       "parameters": {
         "content": "## ROSTER CONFIRMATION LOGIC\n* has this person confirmed the first two rosters\n\n1. Get PersonID\n2. Get schedule for personID\n3. check if they confirmed the first two rosters\n4. if Not, get assignee id ",
         "height": 512,
-        "width": 2352,
+        "width": 2576,
         "color": 6
       },
       "type": "n8n-nodes-base.stickyNote",
@@ -198,8 +207,8 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        4496,
-        608
+        4720,
+        624
       ],
       "id": "dc57453f-e4ea-47b2-94ab-45dc9ec9c975",
       "name": "Sticky Note7"
@@ -272,7 +281,7 @@
       "typeVersion": 2.3,
       "position": [
         3472,
-        896
+        720
       ],
       "id": "538364d0-403d-4feb-be23-0a2975473c01",
       "name": "Filter Out confirmed schedules"
@@ -354,7 +363,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        4560,
+        4944,
         896
       ],
       "id": "c8962643-b854-4198-a03c-f6b83cb961cd",
@@ -384,8 +393,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        4352,
-        896
+        4560,
+        736
       ],
       "id": "d5b80fd9-3a65-4d88-b953-fb22b3d6b121",
       "name": "Merge"
@@ -398,8 +407,8 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        3920,
-        976
+        4128,
+        992
       ],
       "id": "8eb12c6d-51b8-475d-a06a-7eaf8f3d50c6",
       "name": "Split Out inner data"
@@ -411,8 +420,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4128,
-        976
+        4352,
+        992
       ],
       "id": "3d887a8a-ab13-44de-96b5-822209c69eaa",
       "name": "Code in JavaScript"
@@ -424,11 +433,34 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3280,
-        896
+        3248,
+        976
       ],
       "id": "41ff2cd7-e22d-4609-88aa-35cf6cc91e9d",
       "name": "Take first 2 schedule per person"
+    },
+    {
+      "parameters": {
+        "resource": "Person",
+        "operation": "GET -people--person-id-",
+        "person_id": "={{ $json.assigneeID }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        3600,
+        992
+      ],
+      "id": "383c45a8-0407-4269-bf82-b09dc479b3b1",
+      "name": "GET /people/{person_id}",
+      "credentials": {
+        "peopleApi": {
+          "id": "Nr2QJY1K5dkgX00p",
+          "name": "People account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -519,12 +551,12 @@
       "main": [
         [
           {
-            "node": "EMAILS",
+            "node": "Merge",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Merge",
+            "node": "GET /people/{person_id}",
             "type": "main",
             "index": 0
           }
@@ -634,14 +666,26 @@
           }
         ]
       ]
+    },
+    "GET /people/{person_id}": {
+      "main": [
+        [
+          {
+            "node": "EMAILS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "4c86ca56-1b78-46a9-9c58-aea007d382e0",
+  "versionId": "4009ab7d-3511-422e-9f2d-1dd336f6e572",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "0c270e11fe39b62d0937fd806cf5d014ceedec4915a7fbf16fed8d81b25e12a0"
   },
   "id": "1M5P98csIvCcnuQw",

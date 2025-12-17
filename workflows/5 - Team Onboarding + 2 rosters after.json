@@ -246,19 +246,6 @@
     },
     {
       "parameters": {
-        "maxItems": 2
-      },
-      "type": "n8n-nodes-base.limit",
-      "typeVersion": 1,
-      "position": [
-        3248,
-        896
-      ],
-      "id": "2b52c3e1-ee0a-4541-ae0f-cf41eb073bf1",
-      "name": "Take first two schedules"
-    },
-    {
-      "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
@@ -361,7 +348,7 @@
         "genericAuthType": "httpBearerAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"subject\": \"LETS GO + 30 days\",\n  \"from\": {\n    \"email\": \"hello@test-eqvygm019jzl0p7w.mlsender.net\",\n    \"name\": \"C3 Toronto\"\n  },\n  \"to\": [{\n    \"email\": \"{{ $json.email }}\",\n    \"name\": \"{{ $json.attributes.person_name }}\"\n  }],\n  \"personalization\": [{\n    \"email\": \"{{ $json.email }}\", \n    \"data\": {\n      \"name\": \"{{ $json.attributes.person_name }}\",\n      \"nickname\": \"\"\n    }\n  }],\n  \"template_id\": \"{{ $('WORKFLOW IDs').item.json.template_id }}\"\n} ",
+        "jsonBody": "={\n  \"subject\": \"LETS GO + 30 days\",\n  \"from\": {\n    \"email\": \"hello@sejin.kim\",\n    \"name\": \"C3 Toronto\"\n  },\n  \"to\": [{\n    \"email\": \"{{ $json.email }}\",\n    \"name\": \"{{ $json.attributes.person_name }}\"\n  }],\n  \"personalization\": [{\n    \"email\": \"{{ $json.email }}\", \n    \"data\": {\n      \"name\": \"{{ $json.attributes.person_name }}\",\n      \"nickname\": \"Hello Lead, The following person {{ $json.attributes.person_name }} has not accepted their first two rosters , please reach out to them immediately\"\n    }\n  }],\n  \"template_id\": \"{{ $('WORKFLOW IDs').item.json.template_id }}\"\n} ",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -429,6 +416,19 @@
       ],
       "id": "3d887a8a-ab13-44de-96b5-822209c69eaa",
       "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const grouped = {};\nconst output = [];\n\nconst inputItems = $input.all();\n\nfor (let i = 0; i < inputItems.length; i++) {\n  const item = inputItems[i];\n  const personId = item.json.personID;\n\n  if (!grouped[personId]) {\n    grouped[personId] = [];\n  }\n\n  grouped[personId].push({ json: item.json, index: i });\n}\n\nfor (const personId in grouped) {\n  const firstTwo = grouped[personId].slice(0, 2);\n\n  for (const entry of firstTwo) {\n    output.push({\n      json: entry.json,\n      pairedItem: { item: entry.index }\n    });\n  }\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3280,
+        896
+      ],
+      "id": "41ff2cd7-e22d-4609-88aa-35cf6cc91e9d",
+      "name": "Take first 2 schedule per person"
     }
   ],
   "pinData": {},
@@ -515,17 +515,6 @@
         ]
       ]
     },
-    "Take first two schedules": {
-      "main": [
-        [
-          {
-            "node": "Filter Out confirmed schedules",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Filter Out confirmed schedules": {
       "main": [
         [
@@ -562,7 +551,7 @@
       "main": [
         [
           {
-            "node": "Take first two schedules",
+            "node": "Take first 2 schedule per person",
             "type": "main",
             "index": 0
           }
@@ -634,13 +623,24 @@
           }
         ]
       ]
+    },
+    "Take first 2 schedule per person": {
+      "main": [
+        [
+          {
+            "node": "Filter Out confirmed schedules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "6fd50578-8ab3-40ed-b014-28ba1829359c",
+  "versionId": "4c86ca56-1b78-46a9-9c58-aea007d382e0",
   "meta": {
     "instanceId": "0c270e11fe39b62d0937fd806cf5d014ceedec4915a7fbf16fed8d81b25e12a0"
   },

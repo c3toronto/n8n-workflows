@@ -1,0 +1,727 @@
+{
+  "name": "Connect Groups - Weekly Newcomers",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -1200
+      ],
+      "id": "da848c77-699c-4756-b7a0-9ff672347d92",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "resource": "Group Type",
+        "operation": "GET -group-types--group-type-id--groups",
+        "group_type_id": "={{ $json.connect_group_type_id }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco-groups.groups",
+      "typeVersion": 1,
+      "position": [
+        448,
+        -1200
+      ],
+      "id": "d46bf984-8edb-40aa-aaae-427b1afcbbb6",
+      "name": "GET /groups/{group_id}",
+      "credentials": {
+        "groupsApi": {
+          "id": "5eMN8LyixMcZ5wfR",
+          "name": "Groups account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"connect_group_type_id\": 448862,\n  \"template_id\": \"pq3enl6dqn0g2vwr\"\n}\n",
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        -1200
+      ],
+      "id": "22ddb034-2e6e-4cef-92b5-6c9af9227f53",
+      "name": "WORKFLOW IDs"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "include": "=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        672,
+        -1200
+      ],
+      "id": "3084b9af-f557-4ddc-bd8d-a80f517c7c81",
+      "name": "PARSE individual cards",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "content": "## Grab ALL Connect Groups",
+        "height": 256,
+        "width": 912,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -1296
+      ],
+      "id": "1d8a0979-2ff4-4477-9402-fa04c407c021",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "resource": "Group",
+        "operation": "GET -groups--group-id--memberships",
+        "group_id": "={{ $json.data.id }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco-groups.groups",
+      "typeVersion": 1,
+      "position": [
+        896,
+        -1200
+      ],
+      "id": "c4a59f0d-13e7-47b6-b12e-04b8f2940cf3",
+      "name": "GET /groups/{group_id}/memberships",
+      "credentials": {
+        "groupsApi": {
+          "id": "5eMN8LyixMcZ5wfR",
+          "name": "Groups account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bb30155e-4634-4aaa-b5bb-cbadf84140bf",
+              "leftValue": "={{ $today.diff(DateTime.fromISO($json.data.attributes.joined_at), 'days').days }}",
+              "rightValue": 6,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            },
+            {
+              "id": "db54277b-d874-47d2-9a88-b59f8f4eac0f",
+              "leftValue": "={{ $json.data.attributes.role }}",
+              "rightValue": "member",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1568,
+        -1200
+      ],
+      "id": "4e7db53e-3492-4102-9533-563b819004a2",
+      "name": "If",
+      "notesInFlow": false,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "include": "=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        -1200
+      ],
+      "id": "88fe15f1-aad9-4baa-89ae-9735fad04f9b",
+      "name": "PARSE individual cards1",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mailersend.com/v1/email",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"subject\": \"LETS GO + 30 days\",\n  \"from\": {\n    \"email\": \"hello@sejin.kim\",\n    \"name\": \"C3 Toronto\"\n  },\n  \"to\": [{\n    \"email\": \"{{ $('EMAILS').item.json.data[0].attributes.address  }}\",\n    \"name\": \"{{ $('PERSON').item.json.data.attributes.first_name }} {{ $('PERSON').item.json.data.attributes.last_name }}\"\n  }],\n  \"personalization\": [{\n    \"email\": \"{{ $('EMAILS').item.json.data[0].attributes.address }}\", \n    \"data\": {\n      \"name\": \"{{ $('PERSON').item.json.data.attributes.first_name }}\",\n      \"nickname\": \"You have new members this week: {{ $json.names }}\"\n    }\n  }],\n  \"template_id\": \"{{ $('Code in Python (Beta)').item.json.template_id }}\"\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3360,
+        -1200
+      ],
+      "id": "39f13ce4-929d-4c96-8364-6ac7f1ffb347",
+      "name": "MailerSend - Welcome (TEST)",
+      "executeOnce": false,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "08eJzRLXLYkPFd59",
+          "name": "MailerSend test token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Person",
+        "operation": "POST -people--person-id--notes",
+        "person_id": "={{ $('PERSON').item.json.data.id }}",
+        "additionalFields": {
+          "data": "={\n  \"attributes\": \n  {\"note\": \"We sent template {{ $('MailerSend - get Template info').item.json.data[0].name }} via email to {{ $('EMAILS').item.json.data[0].attributes.address }}\",\n  \"note_category_id\": \"285162\"}\n}"
+        },
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        3808,
+        -1200
+      ],
+      "id": "5a3467a3-89eb-41d2-8bde-4adc157be528",
+      "name": "LEAVE note about email",
+      "credentials": {
+        "peopleApi": {
+          "id": "ptrnQow3LACKUZ3X",
+          "name": "People account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.mailersend.com/v1/templates/{{ $json.template_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3584,
+        -1200
+      ],
+      "id": "4fe34c7a-e065-48ec-bf17-d58dc261d67b",
+      "name": "MailerSend - get Template info",
+      "executeOnce": false,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "08eJzRLXLYkPFd59",
+          "name": "MailerSend test token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "73d4a0ae-0380-4f04-bf16-451f736c5642",
+              "name": "data",
+              "value": "={{ $json.data }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2240,
+        -1104
+      ],
+      "id": "9b6dd1d2-5c7f-4f0c-b4c1-f91d06ddc3a0",
+      "name": "Turn me into JSON baby"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.planningcenteronline.com/groups/v2/groups/{{ $json.group_id }}/memberships",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "where[role]",
+              "value": "leader"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2016,
+        -1104
+      ],
+      "id": "38efbc7a-55c3-4dbd-af1c-34eabf5c6111",
+      "name": "Get Leaders",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "RkWKPdYSGpfZ3AcU",
+          "name": "PCO Basic"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1120,
+        -1200
+      ],
+      "id": "e4822056-6b3a-4cea-a055-66b6b572573c",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "resource": "Person",
+        "operation": "GET -people--person-id--emails",
+        "person_id": "={{ $json.data.id }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        2688,
+        -1104
+      ],
+      "id": "12f69baf-67d7-4c2c-ba40-d312179d37e5",
+      "name": "EMAILS",
+      "credentials": {
+        "peopleApi": {
+          "id": "ptrnQow3LACKUZ3X",
+          "name": "People account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Person",
+        "operation": "GET -people--person-id-",
+        "person_id": "={{ $json.data.data[0].relationships.person.data.id }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        2464,
+        -1104
+      ],
+      "id": "acb12edc-040d-4e7a-b422-ee85c3bab0b6",
+      "name": "PERSON",
+      "credentials": {
+        "peopleApi": {
+          "id": "ptrnQow3LACKUZ3X",
+          "name": "People account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "this node makes sure we can process **per batch**, not card (connect group)",
+        "height": 256
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        -1296
+      ],
+      "id": "e8025265-9025-4629-bbf7-47b71d2bbc55",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "# Loop over input items and add a new field called 'myNewField' to the JSON of each one\nnew_stuff = {'persons': [], 'template_id': _('WORKFLOW IDs').first().json.template_id}\n\nfor item in _input.all():\n  new_stuff['persons'].append(item.json.data.relationships.person.data.id)\n  new_stuff['group_id'] = item.json.data.relationships.group.data.id\nreturn new_stuff"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        -1200
+      ],
+      "id": "82cb3813-90db-4b45-b76d-c67dbca52dc1",
+      "name": "Code in Python (Beta)"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "group_id",
+              "field2": "group_id"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3136,
+        -1200
+      ],
+      "id": "4293d1bb-c227-4137-b4f1-018863f06ff7",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "# Loop over input items and add a new field called 'myNewField' to the JSON of each one\nnew_stuff = {\n  'first_name': _('PERSON').first().json.data.attributes.first_name,\n  'last_name': _('PERSON').first().json.data.attributes.last_name,\n  'email': \n_input.first().json.data[0].attributes.address,\n  'group_id': _('Turn me into JSON baby').first().json.data.meta.parent.id\n\n}\n\nreturn new_stuff"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2912,
+        -1104
+      ],
+      "id": "4bf31da0-5c43-4369-99fa-6ad20b38874e",
+      "name": "Code in Python (Beta)1"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "persons",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        2464,
+        -1296
+      ],
+      "id": "2868f849-8336-4746-91ce-49d476b545b0",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "resource": "Person",
+        "operation": "GET -people--person-id-",
+        "person_id": "={{ $json.persons }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        2688,
+        -1296
+      ],
+      "id": "ddf052fb-4952-458b-a236-352bf6b12753",
+      "name": "GET /people/{person_id}",
+      "credentials": {
+        "peopleApi": {
+          "id": "ptrnQow3LACKUZ3X",
+          "name": "People account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "# Loop over input items and add a new field called 'myNewField' to the JSON of each one\npayload = {\"names\": [], \"group_id\":_('Code in Python (Beta)').first().json.group_id}\n\nfor item in _input.all():\n  payload[\"names\"].append(item.json.data.attributes.name)\n\nreturn payload"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2912,
+        -1296
+      ],
+      "id": "5872271f-d450-46d5-8a4c-bd2b9a52c0d1",
+      "name": "Code in Python (Beta)2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "WORKFLOW IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WORKFLOW IDs": {
+      "main": [
+        [
+          {
+            "node": "GET /groups/{group_id}",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PARSE individual cards": {
+      "main": [
+        [
+          {
+            "node": "GET /groups/{group_id}/memberships",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET /groups/{group_id}": {
+      "main": [
+        [
+          {
+            "node": "PARSE individual cards",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET /groups/{group_id}/memberships": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PARSE individual cards1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MailerSend - Welcome (TEST)": {
+      "main": [
+        [
+          {
+            "node": "MailerSend - get Template info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MailerSend - get Template info": {
+      "main": [
+        [
+          {
+            "node": "LEAVE note about email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Get Leaders": {
+      "main": [
+        [
+          {
+            "node": "Turn me into JSON baby",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "PARSE individual cards1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Turn me into JSON baby": {
+      "main": [
+        [
+          {
+            "node": "PERSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EMAILS": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LEAVE note about email": {
+      "main": [
+        []
+      ]
+    },
+    "PERSON": {
+      "main": [
+        [
+          {
+            "node": "EMAILS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)": {
+      "main": [
+        [
+          {
+            "node": "Get Leaders",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "GET /people/{person_id}",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET /people/{person_id}": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python (Beta)2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "MailerSend - Welcome (TEST)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f0f75099-decf-4d28-a9bb-465de1560c10",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "00eda978326eca03b7a76263aaa300c1b10e79f3a5d0742840747f72ad4409be"
+  },
+  "id": "eBtawYpJypu5aQqY",
+  "tags": []
+}

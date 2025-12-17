@@ -41,7 +41,7 @@
         "genericAuthType": "httpBearerAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"subject\": \"LETS GO\",\n  \"from\": {\n    \"email\": \"hello@test-eqvygm019jzl0p7w.mlsender.net\",\n    \"name\": \"C3 Toronto\"\n  },\n  \"to\": [{\n    \"email\": \"{{ $('EMAILS').item.json.data[0].attributes.address  }}\",\n    \"name\": \"{{ $('PERSON').item.json.data.attributes.first_name }} {{ $('PERSON').item.json.data.attributes.last_name }}\"\n  }],\n  \"personalization\": [{\n    \"email\": \"{{ $('EMAILS').item.json.data[0].attributes.address }}\", \n    \"data\": {\n      \"name\": \"{{ $('PERSON').item.json.data.attributes.first_name }}\",\n      \"nickname\": \"BUDDY\"\n    }\n  }],\n  \"template_id\": \"{{ $('WORKFLOW IDs').item.json.template_id }}\"\n} ",
+        "jsonBody": "={\n  \"subject\": \"LETS GO\",\n  \"from\": {\n    \"email\": \"hello@test-eqvygm019jzl0p7w.mlsender.net\",\n    \"name\": \"C3 Toronto\"\n  },\n  \"to\": [{\n    \"email\": \"{{ $('EMAILS').item.json.data[0].attributes.address  }}\",\n    \"name\": \"{{ $('PERSON').item.json.data.attributes.first_name }} {{ $('PERSON').item.json.data.attributes.last_name }}\"\n  }],\n  \"personalization\": [{\n    \"email\": \"{{ $('EMAILS').item.json.data[0].attributes.address }}\", \n    \"data\": {\n      \"name\": \"{{ $('PERSON').item.json.data.attributes.first_name }}\",\n      \"nickname\": \"{{ $('PERSON').item.json.data.attributes.last_name }}\"\n    }\n  }],\n  \"template_id\": \"{{ $('WORKFLOW IDs').item.json.template_id }}\"\n} ",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -64,7 +64,9 @@
       "parameters": {
         "rule": {
           "interval": [
-            {}
+            {
+              "field": "weeks"
+            }
           ]
         }
       },
@@ -295,15 +297,15 @@
     },
     {
       "parameters": {
-        "content": "## LOG on Planning Center Notes\n\n1. Get information about what email was sent\n2. Leave a note",
+        "content": "## LOG on Planning Center\n\n1. Get information about what email was sent\n2. Leave a note\n3. Move to next step",
         "height": 464,
-        "width": 416,
+        "width": 656,
         "color": 5
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        1968,
+        1952,
         -112
       ],
       "id": "1c318ab0-a148-4ecf-a477-73a6bbadf4bd",
@@ -325,6 +327,29 @@
       ],
       "id": "66d5c5d9-081b-42bc-9657-107ecee8da90",
       "name": "GET /workflows/{workflow_id}/cards",
+      "credentials": {
+        "peopleApi": {
+          "id": "ptrnQow3LACKUZ3X",
+          "name": "People account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Person",
+        "operation": "POST -people--person-id--workflow-cards--workflow-card-id--skip-step",
+        "person_id": "={{ $json.data.attributes.person_id }}",
+        "workflow_card_id": "={{ $('PARSE individual cards').item.json.data.id }}",
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        2448,
+        96
+      ],
+      "id": "7d9609bd-4422-4eab-a667-8c9d6ee78d7f",
+      "name": "MOVE person to next step",
       "credentials": {
         "peopleApi": {
           "id": "ptrnQow3LACKUZ3X",
@@ -455,13 +480,24 @@
           }
         ]
       ]
+    },
+    "LEAVE note about email": {
+      "main": [
+        [
+          {
+            "node": "MOVE person to next step",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "5f44123a-8d57-438f-92d8-c933087d5493",
+  "versionId": "00da5dd2-aabf-4182-813c-b5f0ab29e386",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "00eda978326eca03b7a76263aaa300c1b10e79f3a5d0742840747f72ad4409be"

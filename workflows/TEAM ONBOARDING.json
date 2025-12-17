@@ -1,0 +1,649 @@
+{
+  "name": "TEAM ONBOARDING",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "Workflow",
+        "operation": "GET -workflows--workflow-id--cards",
+        "workflow_id": "={{ $json.test_id }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        1456,
+        896
+      ],
+      "id": "30f21248-1824-437d-be15-3dea19f9abaa",
+      "name": "GET /workflows/{workflow_id}/cards1",
+      "credentials": {
+        "peopleApi": {
+          "id": "Nr2QJY1K5dkgX00p",
+          "name": "People account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"mt_workflow_id\": 548148,\n  \"test_id\": 687227,\n  \"template_id\": \"pq3enl6dqn0g2vwr\"\n}\n",
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1232,
+        896
+      ],
+      "id": "7b6a2c2c-4989-4d7e-b11e-e7e0e2036b14",
+      "name": "WORKFLOW IDs"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "daysInterval": 7,
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        1008,
+        896
+      ],
+      "id": "f13616c5-18ee-4b9c-b1d7-a0494e626776",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "Person",
+        "operation": "GET -people--person-id--emails",
+        "person_id": "={{ $json.assigneeID }}",
+        "additionalFields": {},
+        "requestOptions": {}
+      },
+      "type": "@c3toronto/n8n-nodes-pco.people",
+      "typeVersion": 1,
+      "position": [
+        3696,
+        976
+      ],
+      "id": "2f81ec79-ca3e-473b-906f-d7e0acf197ec",
+      "name": "EMAILS",
+      "credentials": {
+        "peopleApi": {
+          "id": "Nr2QJY1K5dkgX00p",
+          "name": "People account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "include": "=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        896
+      ],
+      "id": "96b6bb1c-b3d1-4fda-aa25-ae8b96b203dc",
+      "name": "PARSE individual cards",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "url": "=https://api.mailersend.com/v1/templates/{{ $json.template_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4720,
+        896
+      ],
+      "id": "74981650-f2b9-47c5-9524-973032ee94b3",
+      "name": "MailerSend - get Template info",
+      "executeOnce": false,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "zLJhxS5BkukgEB1o",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2581a361-53eb-4c53-8c53-dbe35d4666de",
+              "leftValue": "={{ $json.data.attributes.removed_at }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1904,
+        896
+      ],
+      "id": "203c6858-1673-42e2-9149-09d06b69a8de",
+      "name": "FILTER removed cards"
+    },
+    {
+      "parameters": {
+        "content": "## WORKFLOW Entry + Filter",
+        "height": 512,
+        "width": 1088,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        960,
+        608
+      ],
+      "id": "4fa11eb4-d176-47e3-bb91-960aa8d4a1f0",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## ROSTER CONFIRMATION LOGIC\n* has this person confirmed the first two rosters\n\n1. Get PersonID\n2. Get schedule for personID\n3. check if they confirmed the first two rosters\n4. if Not, get assignee id ",
+        "height": 512,
+        "width": 2352,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2112,
+        608
+      ],
+      "id": "9df82da8-4502-4cd0-8c4e-c734c51b3006",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## LOG on Planning Center Notes\n\n1. Get information about what email was sent\n2. Leave a note",
+        "height": 512,
+        "width": 640,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4496,
+        608
+      ],
+      "id": "dc57453f-e4ea-47b2-94ab-45dc9ec9c975",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.planningcenteronline.com/services/v2/people/{{ $json.personID }}/schedules",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "filter",
+              "value": "past"
+            },
+            {}
+          ]
+        },
+        "options": {
+          "redirect": {},
+          "response": {}
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2352,
+        976
+      ],
+      "id": "2e616be4-70ce-4a2f-82af-83a85dec76cf",
+      "name": "HTTP Request",
+      "alwaysOutputData": false,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "zLJhxS5BkukgEB1o",
+          "name": "Bearer Auth account"
+        },
+        "httpBasicAuth": {
+          "id": "brNoTuuAcXc6KKCq",
+          "name": "Unnamed credential 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "maxItems": 2
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        3248,
+        896
+      ],
+      "id": "2b52c3e1-ee0a-4541-ae0f-cf41eb073bf1",
+      "name": "Take first two schedules"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c66c1f3c-5c20-440d-a0a5-a9978bdb7f76",
+              "leftValue": "={{ $json.attributes.status }}",
+              "rightValue": "C",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        3472,
+        896
+      ],
+      "id": "538364d0-403d-4feb-be23-0a2975473c01",
+      "name": "Filter Out confirmed schedules"
+    },
+    {
+      "parameters": {
+        "jsCode": "const parsed = []\nfor (const item of $input.all()) {\n  let jsonParsed = item.json.data;\n  parsed.push( {\n      personID: jsonParsed.relationships.person.data.id,\n      assigneeID: jsonParsed.relationships.assignee.data.id\n    }\n              )\n}\n\nreturn parsed"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2144,
+        896
+      ],
+      "id": "6a74f6e9-6311-4a80-b8be-0c482879c646",
+      "name": "extract card and assignee IDs"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "personID",
+              "field2": "relationships.person.data.id"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3024,
+        896
+      ],
+      "id": "34d631f1-f2f4-43da-a6af-3a0f3e57beff",
+      "name": "Merge schedule with card info"
+    },
+    {
+      "parameters": {
+        "jsCode": "const parsed = [];\n\nfor (const item of $input.all()) {\n  const jsonParsed = JSON.parse(item.json.data);\n\n  parsed.push(jsonParsed\n  );\n}\n\nreturn parsed;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2576,
+        976
+      ],
+      "id": "87b14747-9d0f-4799-a32b-82432d8f06be",
+      "name": "parse http response"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        2800,
+        976
+      ],
+      "id": "ba4f2244-0afa-48ba-af4e-0edfb6b77db1",
+      "name": "Split Out inner data1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mailersend.com/v1/email",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"subject\": \"LETS GO + 30 days\",\n  \"from\": {\n    \"email\": \"hello@test-eqvygm019jzl0p7w.mlsender.net\",\n    \"name\": \"C3 Toronto\"\n  },\n  \"to\": [{\n    \"email\": \"{{ $json.email }}\",\n    \"name\": \"{{ $json.attributes.person_name }}\"\n  }],\n  \"personalization\": [{\n    \"email\": \"{{ $json.email }}\", \n    \"data\": {\n      \"name\": \"{{ $json.attributes.person_name }}\",\n      \"nickname\": \"\"\n    }\n  }],\n  \"template_id\": \"{{ $('WORKFLOW IDs').item.json.template_id }}\"\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4560,
+        896
+      ],
+      "id": "c8962643-b854-4198-a03c-f6b83cb961cd",
+      "name": "MailerSend - Team specific email",
+      "executeOnce": false,
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "zLJhxS5BkukgEB1o",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "assigneeID",
+              "field2": "personId"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4352,
+        896
+      ],
+      "id": "d5b80fd9-3a65-4d88-b953-fb22b3d6b121",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        3920,
+        976
+      ],
+      "id": "8eb12c6d-51b8-475d-a06a-7eaf8f3d50c6",
+      "name": "Split Out inner data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const emailByPerson = {};\n\nfor (const item of $input.all()) {\n  const personId = item.json.relationships.person.data.id;\n  if (!emailByPerson[personId]) {\n    emailByPerson[personId] = item.json.attributes.address;\n  }\n}\n\nreturn Object.entries(emailByPerson).map(([personId, email]) => ({\n  json: { personId, email }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4128,
+        976
+      ],
+      "id": "3d887a8a-ab13-44de-96b5-822209c69eaa",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "GET /workflows/{workflow_id}/cards1": {
+      "main": [
+        [
+          {
+            "node": "PARSE individual cards",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WORKFLOW IDs": {
+      "main": [
+        [
+          {
+            "node": "GET /workflows/{workflow_id}/cards1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "WORKFLOW IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EMAILS": {
+      "main": [
+        [
+          {
+            "node": "Split Out inner data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PARSE individual cards": {
+      "main": [
+        [
+          {
+            "node": "FILTER removed cards",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MailerSend - get Template info": {
+      "main": [
+        []
+      ]
+    },
+    "FILTER removed cards": {
+      "main": [
+        [
+          {
+            "node": "extract card and assignee IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "parse http response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Take first two schedules": {
+      "main": [
+        [
+          {
+            "node": "Filter Out confirmed schedules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Out confirmed schedules": {
+      "main": [
+        [
+          {
+            "node": "EMAILS",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract card and assignee IDs": {
+      "main": [
+        [
+          {
+            "node": "Merge schedule with card info",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge schedule with card info": {
+      "main": [
+        [
+          {
+            "node": "Take first two schedules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "parse http response": {
+      "main": [
+        [
+          {
+            "node": "Split Out inner data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out inner data1": {
+      "main": [
+        [
+          {
+            "node": "Merge schedule with card info",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "MailerSend - Team specific email": {
+      "main": [
+        [
+          {
+            "node": "MailerSend - get Template info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "MailerSend - Team specific email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out inner data": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6fd50578-8ab3-40ed-b014-28ba1829359c",
+  "meta": {
+    "instanceId": "0c270e11fe39b62d0937fd806cf5d014ceedec4915a7fbf16fed8d81b25e12a0"
+  },
+  "id": "1M5P98csIvCcnuQw",
+  "tags": []
+}
